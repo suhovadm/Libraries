@@ -1,4 +1,4 @@
 import requests
 
-r = requests.get('https://wttr.in/Ïåğìü?0&lang=ru')
+r = requests.get('https://wttr.in/ĞŸĞµÑ€Ğ¼ÑŒ?0&lang=ru')
 print(r.text)
