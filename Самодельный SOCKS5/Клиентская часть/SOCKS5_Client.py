@@ -33,7 +33,7 @@ class EncryptedSocksClient:
         self.logger = logging.getLogger(__name__)
 
         # Задаём пароль для генерации криптографических ключей.
-        password = "Cybertron777777"
+        password = "123456789"
         # Генерируем ключ шифрования и аутентификации с помощью PBKDF2.
         # pbkdf2_hmac - функция наследования ключа на основе пароля.
         # sha256 - используемая хеш-функция.
