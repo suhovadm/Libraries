@@ -22,7 +22,7 @@ class ServerConfig:
 
     # Настройки безопасности.
     # Пароль для генерации ключей шифрования.
-    PASSWORD = os.getenv('SOCKS_PASSWORD', 'Cybertron777777')
+    PASSWORD = os.getenv('SOCKS_PASSWORD', '123456789')
     # Секретный ключ для создания токенов аутентификации.
     # Используется для верификации клиентов.
     AUTH_TOKEN_SECRET = os.getenv('SOCKS_AUTH_SECRET', 'secret_auth_token')
@@ -76,4 +76,5 @@ class ServerConfig:
             'handshake_timeout': cls.HANDSHAKE_TIMEOUT, # ключ handshake с таймаутом handshake
             'tunnel_timeout': cls.TUNNEL_TIMEOUT, # ключ tunnel_timeout с таймаутом туннеля
             'max_data_size': cls.MAX_DATA_SIZE, # ключ max_data_size с максимальным размером данных
+
         }
