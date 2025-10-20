@@ -1,0 +1,97 @@
+import os
+import socket
+import threading
+import json
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
+HOST = '127.0.0.1'  # IP сервера
+PORT = 1194
+SHARED_SECRET_KEY = b'Sixteen byte key'
+
+def encrypt(data, key):
+    iv = os.urandom(16)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    ct_bytes = cipher.encrypt(pad(data, AES.block_size))
+    return iv + ct_bytes
+
+def decrypt(encrypted_data, key):
+    iv = encrypted_data[:16]
+    ct = encrypted_data[16:]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    pt = unpad(cipher.decrypt(ct), AES.block_size)
+    return pt
+
+def encapsulate_ip_packet(ip_packet_bytes):
+    header = b'VPNIP'
+    return header + ip_packet_bytes
+
+def decapsulate_ip_packet(data):
+    if data.startswith(b'VPNIP'):
+        return data[5:]
+    else:
+        return None
+
+def authenticate(sock):
+    login = input("Введите логин: ")
+    password = input("Введите пароль: ")
+    auth_info = {"login": login, "password": password}
+    auth_data = json.dumps(auth_info).encode()
+
+    # Отправляем зашифрованный JSON
+    encrypted_auth = encrypt(auth_data, SHARED_SECRET_KEY)
+    sock.sendall(encrypted_auth)
+
+    # Получаем ответ
+    response_encrypted = sock.recv(4096)
+    response_data = decrypt(response_encrypted, SHARED_SECRET_KEY)
+    response = json.loads(response_data.decode())
+
+    print("Ответ сервера:", response['message'])
+    return response['status'] == 'ok'
+
+def listen_for_packets(sock):
+    while True:
+        try:
+            data = sock.recv(4096)
+            if not data:
+                print("Соединение закрыто.")
+                break
+            decrypted_data = decrypt(data, SHARED_SECRET_KEY)
+            ip_packet = decapsulate_ip_packet(decrypted_data)
+            if ip_packet:
+                print(f"Получен IP-пакет: {ip_packet}")
+            else:
+                print("Некорректный IP-пакет")
+        except Exception as e:
+            print(f"Ошибка при получении данных: {e}")
+            break
+
+def main():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((HOST, PORT))
+    print("Подключено к серверу.")
+
+    if not authenticate(sock):
+        sock.close()
+        return
+
+    threading.Thread(target=listen_for_packets, args=(sock,), daemon=True).start()
+
+    try:
+        while True:
+            user_input = input("Введите строку для отправки как IP-пакет (или 'exit'): ")
+            if user_input.lower() == 'exit':
+                break
+            ip_packet_bytes = user_input.encode()
+            encapsulated = encapsulate_ip_packet(ip_packet_bytes)
+            encrypted = encrypt(encapsulated, SHARED_SECRET_KEY)
+            sock.sendall(encrypted)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        sock.close()
+        print("Соединение закрыто.")
+
+if __name__ == "__main__":
+    main()
