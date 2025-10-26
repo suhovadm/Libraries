@@ -74,7 +74,7 @@ class EncryptedSocksClient:
 # Точка входа программы
 if __name__ == "__main__":
     # Определение параметров.
-    PROXY_SERVER = "10.1.1.56"  # IP вашего VPS
+    PROXY_SERVER = "10.1.1.56"  # IP нашего VPS
     LOCAL_PORT = 1081  # локальный порт для SOCKS5 прокси
 
     # Создание экземпляра клиента зашифрованного SOCKS5 прокси.
